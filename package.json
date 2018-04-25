@@ -1,0 +1,32 @@
+{
+  "name": "realtimetwitterapp",
+  "version": "1.0.0",
+  "description": "Simple TwitterApplication",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prateek951/RealTimeTwitterApp.git"
+  },
+  "keywords": [
+    "node",
+    "express",
+    "socket.io"
+  ],
+  "author": "Prateek Madaaan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/prateek951/RealTimeTwitterApp/issues"
+  },
+  "homepage": "https://github.com/prateek951/RealTimeTwitterApp#readme",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.3",
+    "express-handlebars": "^3.0.0",
+    "hbs": "^4.0.1",
+    "mongoose": "^5.0.16",
+    "morgan": "^1.9.0"
+  }
+}
