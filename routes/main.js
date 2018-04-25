@@ -5,6 +5,6 @@ const router = express.Router();
 /*@desc To render the main handlebars template as the view*/ 
 /*@access Public*/
 
-router.get('/',(req, res) => res.render('layouts/layout'));
+router.get('/',(req, res) => res.render('main/landing'));
  
 module.exports = router;
