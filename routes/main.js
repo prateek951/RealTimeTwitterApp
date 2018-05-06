@@ -1,146 +1,136 @@
-const express = require('express');
-<<<<<<< HEAD
-const async = require('async');
-// const bodyParser = require('body-parser');
-=======
-const bodyParser = require('body-parser');
->>>>>>> 5f28aa211ce0d24aea51a2c78ad498f933012aa0
-const User = require('../models/user');
-const Tweet = require('../models/tweet');
+const express = require("express")
 const router = express.Router();
+const async = require("async");
+const User = require("../models/user");
+const Tweet = require("../models/tweet");
 
-/*@route GET request for the '/' route*/ 
-/*@desc To render the main handlebars template as the view*/ 
-/*@access Public*/
+router.get("/", (req, res, next) => {
+  if (req.user) {
+    Tweet.find({})
+      .sort("-created")
+      .populate("owner")
+      .exec(function(err, tweets) {
+        if (err) return next(err);
+        console.log(tweets);
+        res.render("main/home", { tweets: tweets });
+      });
+  } else {
+    res.render("main/landing");
+  }
+});
 
-router.get('/',(req, res, next) => {
-    if(req.user){
-        Tweet.find({})
-        .sort('-created')
-        .populate('owner')
-        .exec()
-        .then(tweets => res.render('main/home',{tweets}))
-        .catch(err => console.log(err));
-    }else{
-        res.render('main/landing');
+router.get("/user/:id", (req, res, next) => {
+  async.waterfall([
+    function(callback) {
+      Tweet.find({ owner: req.params.id })
+        .populate("owner")
+        .exec(function(err, tweets) {
+          callback(err, tweets);
+        });
+    },
+
+    function(tweets, callback) {
+      User.findOne({ _id: req.params.id })
+        .populate("following")
+        .populate("followers")
+        .exec(function(err, user) {
+          var follower = user.followers.some(function(friend) {
+            return friend.equals(req.user._id);
+          });
+
+          var currentUser;
+          if (req.user._id.equals(user._id)) {
+            currentUser = true;
+          } else {
+            currentUser = false;
+          }
+          res.render("main/user", {
+            foundUser: user,
+            tweets: tweets,
+            currentUser: currentUser,
+            follower: follower
+          });
+        });
     }
+  ]);
 });
 
-/*@route /user/:id*/ 
-/*@desc GET the user by its id*/ 
-/*@access Public*/ 
+router.post("/follow/:id", (req, res, next) => {
+  async.parallel(
+    [
+      function(callback) {
+        User.update(
+          {
+            _id: req.user._id,
+            following: { $ne: req.params.id }
+          },
+          {
+            $push: { following: req.params.id }
+          },
+          function(err, count) {
+            callback(err, count);
+          }
+        );
+      },
 
-router.get('/user/:id',(req, res, next) => {
-    async.waterfall([
-        function(callback){
-            Tweet.find({owner : req.params.id})
-            .populate('owner')
-            .exec((err, tweets) => callback(err,tweets));
-            
-        },
-        function(tweets,callback){
-            User.findOne({_id : req.params.id})
-            .populate('following')
-            .populate('followers')
-            .exec(function(err,user){
-                var followers = user.followers.some(function(friend){
-                    return friend.equals(req.user._id);
-                })
-                var currentUser;
-                if(req.user._id.equals(user._id)){
-                    currentUser = true;
-                }else{
-                    currentUser = false;
-                }
-                res.render('main/user',{founduser : user,tweets:tweets,currentUser: currentUser});
-            });
-        }
-    ]);
+      function(callback) {
+        User.update(
+          {
+            _id: req.params.id,
+            followers: { $ne: req.user._id }
+          },
+          {
+            $push: { followers: req.user._id }
+          },
+          function(err, count) {
+            callback(err, count);
+          }
+        );
+      }
+    ],
+    function(err, results) {
+      if (err) return next(err);
+      res.json("Success");
+    }
+  );
 });
 
+router.post("/unfollow/:id", (req, res, next) => {
+  async.parallel(
+    [
+      function(callback) {
+        User.update(
+          {
+            _id: req.user._id
+          },
+          {
+            $pull: { following: req.params.id }
+          },
+          function(err, count) {
+            callback(err, count);
+          }
+        );
+      },
 
-/*@route /follow/:id*/ 
-/*@desc POST request for following a user*/ 
-/*@access Public*/
-
-router.post('/follow/:id',(req, res, next) => {
-
-    async.parallel([
-        function(callback){
-            User.update({
-                _id : req.user._id,
-                following: {$ne : req.params.id}
-            },
-            {
-                $push: {
-                    following: req.params.id
-                }
-            },
-                function(err,count){
-                    callback(err,count);
-                }
-            )
-        },
-        function(callback){
-            User.update({
-                _id : req.params.id,
-                followers : {$ne : req.users._id}
-            },{
-                $push : {followers: req.user._id}
-            },function(err,count){
-                callback(err,count);
-            })
-        }
-    ],function(err,results){
-        if(err){
-            return next(err);
-        }
-        res.json("success");
-    });
+      function(callback) {
+        User.update(
+          {
+            _id: req.params.id
+          },
+          {
+            $pull: { followers: req.user._id }
+          },
+          function(err, count) {
+            callback(err, count);
+          }
+        );
+      }
+    ],
+    function(err, results) {
+      if (err) return next(err);
+      res.json("Success");
+    }
+  );
 });
-
-
-
-/*@route /unfollow/:id*/ 
-/*@desc POST request to unfollow a user*/ 
-/*@access Public*/
-
-router.post('/unfollow/:id',(req, res, next) => {
-
-    async.parallel([
-        function(callback){
-            User.update({
-                _id : req.user._id
-                // following: {$ne : req.params.id}
-            },
-            {
-                $pull: {
-                    following: req.params.id
-                }
-            },
-                function(err,count){
-                    callback(err,count);
-                }
-            )
-        },
-        function(callback){
-            User.update({
-                _id : req.params.id
-                // followers : {$ne : req.users._id}
-            },{
-                $pull : {followers: req.user._id}
-            },function(err,count){
-                callback(err,count);
-            })
-        }
-    ],function(err,results){
-        if(err){
-            return next(err);
-        }
-        res.json("success");
-    });
-});
-
-
 
 module.exports = router;
