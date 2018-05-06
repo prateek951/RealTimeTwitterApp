@@ -1,11 +1,13 @@
 const mongoose = require('mongoose');
 const TweetSchema = mongoose.Schema({
+
     owner: {
-        type: mongoose.Schema.Types.ObjectID, ref : 'User'
+        type: mongoose.Schema.Types.ObjectId,
+        ref : 'User'
     },
-    content: String,
-    created: {
-        type: Date,
+    content : String,
+    created : {
+        type : Date,
         default: Date.now
     }
 });
