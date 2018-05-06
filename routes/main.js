@@ -43,7 +43,16 @@ router.get('/user/:id',(req, res, next) => {
             .populate('following')
             .populate('followers')
             .exec(function(err,user){
-                res.render('main/user',{founduser : user,tweets:tweets});
+                var followers = user.followers.some(function(friend){
+                    return friend.equals(req.user._id);
+                })
+                var currentUser;
+                if(req.user._id.equals(user._id)){
+                    currentUser = true;
+                }else{
+                    currentUser = false;
+                }
+                res.render('main/user',{founduser : user,tweets:tweets,currentUser: currentUser});
             });
         }
     ]);
@@ -52,7 +61,7 @@ router.get('/user/:id',(req, res, next) => {
 
 /*@route /follow/:id*/ 
 /*@desc POST request for following a user*/ 
-/*@access*/
+/*@access Public*/
 
 router.post('/follow/:id',(req, res, next) => {
 
@@ -89,5 +98,49 @@ router.post('/follow/:id',(req, res, next) => {
         res.json("success");
     });
 });
+
+
+
+/*@route /unfollow/:id*/ 
+/*@desc POST request to unfollow a user*/ 
+/*@access Public*/
+
+router.post('/unfollow/:id',(req, res, next) => {
+
+    async.parallel([
+        function(callback){
+            User.update({
+                _id : req.user._id
+                // following: {$ne : req.params.id}
+            },
+            {
+                $pull: {
+                    following: req.params.id
+                }
+            },
+                function(err,count){
+                    callback(err,count);
+                }
+            )
+        },
+        function(callback){
+            User.update({
+                _id : req.params.id
+                // followers : {$ne : req.users._id}
+            },{
+                $pull : {followers: req.user._id}
+            },function(err,count){
+                callback(err,count);
+            })
+        }
+    ],function(err,results){
+        if(err){
+            return next(err);
+        }
+        res.json("success");
+    });
+});
+
+
 
 module.exports = router;
