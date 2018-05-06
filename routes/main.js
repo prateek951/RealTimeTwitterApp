@@ -1,6 +1,10 @@
 const express = require('express');
+<<<<<<< HEAD
 const async = require('async');
 // const bodyParser = require('body-parser');
+=======
+const bodyParser = require('body-parser');
+>>>>>>> 5f28aa211ce0d24aea51a2c78ad498f933012aa0
 const User = require('../models/user');
 const Tweet = require('../models/tweet');
 const router = express.Router();
