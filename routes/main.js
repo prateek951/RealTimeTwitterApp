@@ -7,8 +7,13 @@ const router = express.Router();
 /*@desc To render the main handlebars template as the view*/ 
 /*@access Public*/
 
-router.get('/',(req, res) => res.render('main/landing'));
-
+router.get('/',(req, res, next) => {
+    if(req.user){
+        res.render('main/home');
+    }else{
+        res.render('main/landing');
+    }
+});
 /*@route POST request for the /new route*/ 
 /*@desc Create a new user/ 
 /*@access Public*/
