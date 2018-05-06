@@ -1,29 +1,31 @@
-$(function(){
-    var socket = io();
+$(function() {
+  var socket = io();
 
-    $('#sendTweet').submit(function(){
-        var content = $('#tweet').val();
-        socket.emit('tweet', {content : content});
-        $('#tweet').val('');
-        return false;
-    });
+  $("#sendTweet").submit(function() {
+    var content = $("#tweet").val();
+    socket.emit("tweet", { content: content });
+    $("#tweet").val("");
+    return false;
+  });
 
-    socket.on('incomingTweets',data => {
-        var html = '';
-        html += `
-                        
-                <div id="tweets">
-                <div class="media">
-                    <div class="media-left">
-                        <a href="#"><img class="media-object" src="${data.user.photo}" alt=""></a>
-                    </div>
-                    <div class="media-body">
-                        <h4 class="media-heading">${data.user.name}</h4>
-                        <p>${data.data.content}</p>
-                    </div>
-                </div>
-                </div>      
-        `;
-        $('#tweets').prepend(html);
-    })
+  socket.on("incomingTweets", function(data) {
+    console.log(data);
+    var html = "";
+
+    html += '<div class="media">';
+    html += '<div class="media-left">';
+    html +=
+      '<a href="/user/' +
+      data.user._id +
+      '"><img class="media-object" src="' +
+      data.user.photo +
+      '" /></a>';
+    html += "</div>";
+    html += '<div class="media-body">';
+    html += '<h4 class="media-heading">' + data.user.name + "</h4>";
+    html += "<p>" + data.data.content + "</p>";
+    html += "</div></div>";
+
+    $("#tweets").prepend(html);
+  });
 });
