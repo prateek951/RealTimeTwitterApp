@@ -11,13 +11,15 @@
 </div>
 
 <div id="tweets">
+    {{#each tweets}}
     <div class="media">
         <div class="media-left">
-            <a href="#"><img class="media-object" src="{{user.photo}}" alt=""></a>
+            <a href="#"><img class="media-object" src="{{owner.photo}}" alt=""></a>
         </div>
         <div class="media-body">
-            <h4 class="media-heading">{{user.name}}</h4>
-            <p>Hello My name is Prateek </p>
+            <h4 class="media-heading">{{owner.name}}</h4>
+            <p>{{content}}</p>
         </div>
     </div>
+    {{/each}}
 </div>      

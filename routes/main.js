@@ -1,6 +1,8 @@
 const express = require('express');
+const async = require('async');
 // const bodyParser = require('body-parser');
 const User = require('../models/user');
+const Tweet = require('../models/tweet');
 const router = express.Router();
 
 /*@route GET request for the '/' route*/ 
@@ -9,24 +11,79 @@ const router = express.Router();
 
 router.get('/',(req, res, next) => {
     if(req.user){
-        res.render('main/home');
+        Tweet.find({})
+        .sort('-created')
+        .populate('owner')
+        .exec()
+        .then(tweets => res.render('main/home',{tweets}))
+        .catch(err => console.log(err));
     }else{
         res.render('main/landing');
     }
 });
-/*@route POST request for the /new route*/ 
-/*@desc Create a new user/ 
-/*@access Public*/
+
+/*@route /user/:id*/ 
+/*@desc GET the user by its id*/ 
+/*@access Public*/ 
+
+router.get('/user/:id',(req, res, next) => {
+    async.waterfall([
+        function(callback){
+            Tweet.find({owner : req.params.id})
+            .populate('owner')
+            .exec((err, tweets) => callback(err,tweets));
+            
+        },
+        function(tweets,callback){
+            User.findOne({_id : req.params.id})
+            .populate('following')
+            .populate('followers')
+            .exec(function(err,user){
+                res.render('main/user',{founduser : user,tweets:tweets});
+            });
+        }
+    ]);
+});
 
 
-router.post('/new',(req, res) => {
-    
-    const user = new User();
-    user.email = req.body.username;
-    user.password = req.body.password;
-    user.name = req.body.name;
-    user.save().then(user => res.json('user saved successfully to the database'))
-    .catch(err => res.status(500).json('an error occured while trying to save the user to the database'));
+/*@route /follow/:id*/ 
+/*@desc POST request for following a user*/ 
+/*@access*/
 
-})
+router.post('/follow/:id',(req, res, next) => {
+
+    async.parallel([
+        function(callback){
+            User.update({
+                _id : req.user._id,
+                following: {$ne : req.params.id}
+            },
+            {
+                $push: {
+                    following: req.params.id
+                }
+            },
+                function(err,count){
+                    callback(err,count);
+                }
+            )
+        },
+        function(callback){
+            User.update({
+                _id : req.params.id,
+                followers : {$ne : req.users._id}
+            },{
+                $push : {followers: req.user._id}
+            },function(err,count){
+                callback(err,count);
+            })
+        }
+    ],function(err,results){
+        if(err){
+            return next(err);
+        }
+        res.json("success");
+    });
+});
+
 module.exports = router;

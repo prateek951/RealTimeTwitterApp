@@ -23,6 +23,12 @@ const userSchema = mongoose.Schema({
             type : mongoose.Schema.Types.ObjectId,
             ref: 'Tweet'
         }
+    ],
+    following:[
+        {type : mongoose.Schema.Types.ObjectId,ref: 'User'}
+    ],
+    followers: [
+        {type: mongoose.Schema.Types.ObjectId,ref: 'User'}
     ]
 });
 
